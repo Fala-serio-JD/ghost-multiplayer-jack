@@ -1,0 +1,216 @@
+class GhostGame {
+    field Random random;
+    field Map map;
+    field Ghost ghost;
+    field Person person;
+    field int seedCounter;
+    field boolean exit;
+
+    constructor GhostGame new() {
+        let seedCounter = 19;
+        let exit = false;
+        let random = Random.new(seedCounter);
+        return this;
+    }
+
+    method void dispose() {
+        if (~(ghost = null)) { do ghost.dispose(); }
+        if (~(person = null)) { do person.dispose(); }
+        if (~(map = null)) { do map.dispose(); }
+        if (~(random = null)) { do random.dispose(); }
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void initRound() {
+        var int gCol, gRow;
+        var int pCol, pRow;
+        var boolean valid;
+
+        if (~(ghost = null)) { do ghost.dispose(); }
+        if (~(person = null)) { do person.dispose(); }
+        if (~(map = null)) { do map.dispose(); }
+
+        do Screen.clearScreen();
+
+        let map = Map.new();
+        do map.draw();
+
+        let valid = false;
+        while (~valid) {
+            let gCol = random.randRange(29) + 1;
+            let gRow = random.randRange(12) + 2;
+            if (~map.isWall(gCol, gRow)) {
+                let valid = true;
+            }
+        }
+        let ghost = Ghost.new(gCol, gRow);
+
+        let valid = false;
+        while (~valid) {
+            let pCol = random.randRange(29) + 1;
+            let pRow = random.randRange(12) + 2;
+            if ((~map.isWall(pCol, pRow)) & (~((pCol = gCol) & (pRow = gRow)))) {
+                let valid = true;
+            }
+        }
+        let person = Person.new(pCol, pRow);
+
+        return;
+    }
+
+    method void updateHud(int phase, int seconds) {
+        do Output.moveCursor(0, 0);
+        if (phase = 1) {
+            do Output.printString("FASE 1 - P2 FUGINDO! Tempo: ");
+            do Output.printInt(seconds);
+            do Output.printString("s     (ESC p/ sair)   ");
+        } else {
+            do Output.printString("FASE 2 - PERSEGUICAO! Tempo: ");
+            do Output.printInt(seconds);
+            do Output.printString("s     (ESC p/ sair)   ");
+        }
+        return;
+    }
+
+    method void readInput(boolean allowGhost) {
+        var char key;
+        let key = Keyboard.keyPressed();
+
+        if (key = 140) {
+            let exit = true;
+            return;
+        }
+
+        if (allowGhost) {
+            if (key = 131) { do ghost.setDirection(1); }
+            if (key = 133) { do ghost.setDirection(2); }
+            if (key = 130) { do ghost.setDirection(3); }
+            if (key = 132) { do ghost.setDirection(4); }
+            if ((key = 46) | (key = 59)) { do ghost.setDirection(0); }
+        }
+
+        if ((key = 87) | (key = 119)) { do person.setDirection(1); }
+        if ((key = 83) | (key = 115)) { do person.setDirection(2); }
+        if ((key = 65) | (key = 97))  { do person.setDirection(3); }
+        if ((key = 68) | (key = 100)) { do person.setDirection(4); }
+        if ((key = 69) | (key = 101)) { do person.setDirection(0); }
+
+        return;
+    }
+
+    method boolean checkCollision() {
+        if ((ghost.getX() = person.getX()) & (ghost.getY() = person.getY())) {
+            return true;
+        }
+        return false;
+    }
+
+    method void showGameOver(int loser) {
+        var int waitTicks;
+        var char key;
+
+        do Screen.clearScreen();
+        do Output.moveCursor(10, 17);
+        if (loser = 1) {
+            do Output.printString("Game Over - Jogador 1 perdeu");
+        } else {
+            do Output.printString("Game Over - Jogador 2 perdeu");
+        }
+
+        do Output.moveCursor(12, 16);
+        do Output.printString("Reiniciando em breve... (ESC sai)");
+
+        let waitTicks = 0;
+        while ((waitTicks < 60) & (~exit)) {
+            let key = Keyboard.keyPressed();
+            if (key = 140) {
+                let exit = true;
+            }
+            do Sys.wait(50);
+            let waitTicks = waitTicks + 1;
+        }
+        return;
+    }
+
+    method void run() {
+        var int phase;
+        var int timeLeft;
+        var int tickCount;
+        var int moveTick;
+        var boolean roundOver;
+        var int loser;
+
+        while (~exit) {
+            do initRound();
+            let phase = 1;
+            let timeLeft = 3;
+            let tickCount = 0;
+            let moveTick = 0;
+            let roundOver = false;
+            let loser = 0;
+
+            do updateHud(phase, timeLeft);
+
+            while ((~roundOver) & (~exit)) {
+                if (phase = 1) {
+                    do readInput(false);
+                } else {
+                    do readInput(true);
+                }
+
+                let moveTick = moveTick + 1;
+                if (moveTick = 3) {
+                    let moveTick = 0;
+                    do person.move(map);
+
+                    if ((phase = 2) & checkCollision()) {
+                        let roundOver = true;
+                        let loser = 2;
+                    }
+
+                    if ((phase = 2) & (~roundOver)) {
+                        do ghost.move(map);
+                        if (checkCollision()) {
+                            let roundOver = true;
+                            let loser = 2;
+                        }
+                    }
+
+                    if (~roundOver) {
+                        do ghost.draw();
+                        do person.draw();
+                    }
+                }
+
+                let tickCount = tickCount + 1;
+                if (tickCount = 20) {
+                    let tickCount = 0;
+                    let timeLeft = timeLeft - 1;
+
+                    if (timeLeft = 0) {
+                        if (phase = 1) {
+                            let phase = 2;
+                            let timeLeft = 7;
+                            do updateHud(phase, timeLeft);
+                        } else {
+                            let roundOver = true;
+                            let loser = 1;
+                        }
+                    } else {
+                        do updateHud(phase, timeLeft);
+                    }
+                }
+
+                do Sys.wait(50);
+            }
+
+            if (~exit) {
+                do showGameOver(loser);
+                let seedCounter = seedCounter + 37;
+                do random.addCallTime(seedCounter);
+            }
+        }
+        return;
+    }
+}

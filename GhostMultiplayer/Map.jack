@@ -1,0 +1,122 @@
+class Map {
+    field Array grid;
+    field int cols;
+    field int rows;
+
+    constructor Map new() {
+        let cols = 32;
+        let rows = 16;
+        let grid = Array.new(512);
+        do initMap();
+        return this;
+    }
+
+    method void dispose() {
+        do grid.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void setWall(int col, int row) {
+        let grid[(row * 32) + col] = 1;
+        return;
+    }
+
+    method boolean isWall(int col, int row) {
+        if ((col < 0) | (col > 31) | (row < 1) | (row > 15)) {
+            return true;
+        }
+        if (grid[(row * 32) + col] = 1) {
+            return true;
+        }
+        return false;
+    }
+
+    method void clearGrid() {
+        var int i;
+        let i = 0;
+        while (i < 512) {
+            let grid[i] = 0;
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void addHorizontalWall(int row, int startCol, int endCol) {
+        var int c;
+        let c = startCol;
+        while (~(c > endCol)) {
+            do setWall(c, row);
+            let c = c + 1;
+        }
+        return;
+    }
+
+    method void addVerticalWall(int col, int startRow, int endRow) {
+        var int r;
+        let r = startRow;
+        while (~(r > endRow)) {
+            do setWall(col, r);
+            let r = r + 1;
+        }
+        return;
+    }
+
+    method void initMap() {
+        do clearGrid();
+
+        do addHorizontalWall(1, 0, 31);
+        do addHorizontalWall(15, 0, 31);
+        do addVerticalWall(0, 1, 15);
+        do addVerticalWall(31, 1, 15);
+
+        do addHorizontalWall(3, 3, 9);
+        do addVerticalWall(3, 3, 7);
+        do addHorizontalWall(7, 3, 7);
+
+        do addHorizontalWall(3, 13, 18);
+        do addVerticalWall(15, 3, 6);
+
+        do addHorizontalWall(3, 22, 28);
+        do addVerticalWall(28, 3, 7);
+        do addHorizontalWall(7, 24, 28);
+
+        do addVerticalWall(10, 5, 11);
+        do addVerticalWall(21, 5, 11);
+
+        do addHorizontalWall(9, 13, 18);
+        do addVerticalWall(13, 9, 12);
+        do addVerticalWall(18, 9, 12);
+
+        do addHorizontalWall(11, 3, 7);
+        do addVerticalWall(5, 11, 13);
+
+        do addHorizontalWall(11, 24, 28);
+        do addVerticalWall(26, 11, 13);
+
+        do addHorizontalWall(13, 10, 13);
+        do addHorizontalWall(13, 18, 21);
+
+        return;
+    }
+
+    method void draw() {
+        var int r, c;
+        var int x, y;
+        do Screen.setColor(true);
+        let r = 1;
+        while (r < 16) {
+            let c = 0;
+            while (c < 32) {
+                if (grid[(r * 32) + c] = 1) {
+                    let x = c * 16;
+                    let y = r * 16;
+                    do Screen.drawRectangle(x, y, x + 15, y + 15);
+                }
+                let c = c + 1;
+            }
+            let r = r + 1;
+        }
+        return;
+    }
+}

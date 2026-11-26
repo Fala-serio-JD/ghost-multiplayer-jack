@@ -1,0 +1,89 @@
+class Person {
+    field int x, y;
+    field int size;
+    field int direction;
+
+    constructor Person new(int col, int row) {
+        let size = 16;
+        let x = col * size;
+        let y = row * size;
+        let direction = 0;
+        do draw();
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method int getX() {
+        return x;
+    }
+
+    method int getY() {
+        return y;
+    }
+
+    method void setDirection(int dir) {
+        let direction = dir;
+        return;
+    }
+
+    method void draw() {
+        do drawPersonSprite((y * 32) + (x / 16));
+        return;
+    }
+
+    method void erase() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + 15, y + 15);
+        return;
+    }
+
+    method void drawPersonSprite(int location) {
+        var int memAddress;
+        let memAddress = 16384 + location;
+        do Memory.poke(memAddress + 0, 960);
+        do Memory.poke(memAddress + 32, 2016);
+        do Memory.poke(memAddress + 64, 1632);
+        do Memory.poke(memAddress + 96, 2016);
+        do Memory.poke(memAddress + 128, 960);
+        do Memory.poke(memAddress + 160, 384);
+        do Memory.poke(memAddress + 192, 4080);
+        do Memory.poke(memAddress + 224, 4080);
+        do Memory.poke(memAddress + 256, 384);
+        do Memory.poke(memAddress + 288, 960);
+        do Memory.poke(memAddress + 320, 960);
+        do Memory.poke(memAddress + 352, 1632);
+        do Memory.poke(memAddress + 384, 3120);
+        do Memory.poke(memAddress + 416, 6168);
+        do Memory.poke(memAddress + 448, 4104);
+        do Memory.poke(memAddress + 480, 0);
+        return;
+    }
+
+    method void move(Map map) {
+        var int nextCol, nextRow;
+        if (direction = 0) {
+            return;
+        }
+        let nextCol = x / 16;
+        let nextRow = y / 16;
+
+        if (direction = 1) { let nextRow = nextRow - 1; }
+        if (direction = 2) { let nextRow = nextRow + 1; }
+        if (direction = 3) { let nextCol = nextCol - 1; }
+        if (direction = 4) { let nextCol = nextCol + 1; }
+
+        if (map.isWall(nextCol, nextRow)) {
+            let direction = 0;
+        } else {
+            do erase();
+            let x = nextCol * 16;
+            let y = nextRow * 16;
+            do draw();
+        }
+        return;
+    }
+}

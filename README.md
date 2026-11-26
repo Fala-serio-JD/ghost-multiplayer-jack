@@ -99,8 +99,8 @@ Os desenhos dos personagens são matrizes de $16 \times 16$ pixels convertidas e
 
 ## 👥 Autores
 
-- **Seu Nome** — *Lógica do jogo, labirinto, física de colisão e temporizadores*
-- **Nome do Amigo** — *Design dos sprites 16×16 e documentação/apresentação*
+- **Jezreel David** — *Lógica do jogo, labirinto, física de colisão e temporizadores*
+- **Carlos Yuri** — *Design dos sprites 16×16 e documentação/apresentação*
 
 ---
 

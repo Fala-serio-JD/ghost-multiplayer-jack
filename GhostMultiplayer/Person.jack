@@ -7,7 +7,7 @@ class Person {
         let size = 16;
         let x = col * size;
         let y = row * size;
-        let direction = 0;
+        let direction = 0; 
         do draw();
         return this;
     }

@@ -191,7 +191,7 @@ class GhostGame {
                     if (timeLeft = 0) {
                         if (phase = 1) {
                             let phase = 2;
-                            let timeLeft = 7;
+                            let timeLeft = 15;
                             do updateHud(phase, timeLeft);
                         } else {
                             let roundOver = true;
